@@ -9,7 +9,10 @@ export default function CompletedPage() {
   const [status, setStatus] = useState("");
 
   const handleShareImage = async () => {
-    if (!resultRef.current) return;
+    if (!resultRef.current) {
+      setStatus("⚠️ No content to share.");
+      return;
+    }
 
     setStatus("Preparing image...");
 
@@ -18,14 +21,20 @@ export default function CompletedPage() {
         scale: 2,
         useCORS: true,
       });
+      if (!canvas) throw new Error("Canvas generation failed");
 
-      const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/png")
+      const blob = await new Promise((resolve, reject) =>
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject("Canvas toBlob failed");
+        }, "image/png")
       );
+
+      if (!blob) throw new Error("Blob creation failed");
 
       const file = new File([blob], "quiz-result.png", { type: "image/png" });
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: "Quiz Result",
@@ -33,20 +42,18 @@ export default function CompletedPage() {
         });
         setStatus("✅ Shared successfully!");
       } else {
-        // Fallback to download
+        // fallback download
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
         link.download = "quiz-result.png";
-        document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        setStatus("⚠️ Sharing not supported, image downloaded instead.");
+        setStatus("⚠️ Share not supported. Image downloaded instead.");
       }
     } catch (err) {
-      console.error("Error during sharing:", err);
-      setStatus("❌ Something went wrong. Try again.");
+      console.error("❌ Share error:", err);
+      setStatus("❌ Something went wrong: " + err);
     }
   };
 
