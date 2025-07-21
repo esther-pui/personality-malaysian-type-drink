@@ -1,5 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useAnswer } from "@/app/context/AnswerContext";
+import { use } from "react";
 
 const questions = [
   {
@@ -26,34 +28,38 @@ const questions = [
 
 export default function QuestionPage({ params }) {
     const router = useRouter();
-    const id = parseInt(params.id);
-    const question = questions[id - 1];
+    const { addAnswer } = useAnswer();
+    const { id } = use(params);
+    const questionId = parseInt(id);
+    const question = questions[questionId - 1];
 
-    const handleClick = () => {
-        if (id < questions.length) {
-            router.push(`/question/${id + 1}`);
-        } else {
-            router.push("/completed");
-        }
+    const handleClick = (option) => {
+      // save answer
+      addAnswer(option);
+      if (questionId < questions.length) {
+        router.push(`/question/${questionId + 1}`);
+      } else {
+        router.push("/completed");
+      }
     };
 
     if (!question) return <p className="text-center">Question not found</p>;
 
     return (
-        <div className="min-h-screen w-[600px] mx-auto bg-white flex flex-col justify-center items-center p-8 text-center text-black gap-6">
-            <h1 className="text-xl font-bold">{question.question}</h1>
-            <div className="flex flex-col gap-3 w-full">
-                {question.options.map((option, index) => (
-                <button
-                    key={index}
-                    className="bg-black text-white py-2 rounded-lg"
-                    onClick={handleClick}
-                >
-                    {option}
-                </button>
-                ))}
-            </div>
+      <div className="min-h-screen w-[600px] mx-auto bg-white flex flex-col justify-center items-center p-8 text-center text-black gap-6">
+        <h1 className="text-xl font-bold">{question.question}</h1>
+        <div className="flex flex-col gap-3 w-full">
+          {question.options.map((option, index) => (
+          <button
+            key={index}
+            className="bg-black text-white py-2 rounded-lg"
+            onClick={() => handleClick(option)}
+          >
+            {option}
+          </button>
+          ))}
         </div>
+      </div>
     )
 
 }
