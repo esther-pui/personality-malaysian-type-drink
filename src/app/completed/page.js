@@ -96,7 +96,7 @@ export default function CompletedPage() {
         onClick={handleShareImage}
         className="mt-6 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
       >
-        Share to Instagram
+        Share to Instagram hahah
       </button>
 
       {status && (
